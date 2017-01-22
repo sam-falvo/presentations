@@ -1,0 +1,585 @@
+<!--
+slidedeck: A modification of the Google IO 2012 HTML5 slide template
+URL: https://github.com/rmcgibbo/slidedeck
+
+Based on https://github.com/francescolaffi/elastic-google-io-slides, and
+ultimately:
+
+Google IO 2012 HTML5 Slide Template
+Authors: Eric Bidelman <ebidel@gmail.com>
+         Luke Mahe <lukem@google.com>
+URL: https://code.google.com/p/io-2012-slides
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Selected Lessons Learned<br/> Building the KCP53000</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">-->
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <!--This one seems to work all the time, but really small on ipad-->
+  <!--<meta name="viewport" content="initial-scale=0.4">-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <link rel="stylesheet" media="all" href="theme/css/default.css">
+  <link rel="stylesheet" media="all" href="theme/css/custom.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="theme/css/phone.css">
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->
+  <script data-main="js/slides", src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.14/require.min.js"></script>
+
+
+  <!-- MathJax support  -->
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX", "output/HTML-CSS"],
+    showProcessingMessages: false,
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+      processEscapes: true
+    },
+    TeX: {
+      extensions: ["color.js"]
+    },
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+  </script>
+  <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <div style="display:hidden">
+  \[
+    \definecolor{data}{RGB}{18,110,213}
+    \definecolor{unknown}{RGB}{217,86,16}
+    \definecolor{learned}{RGB}{175,114,176}
+  \]
+  </div>
+
+</head>
+
+<body style="opacity: 0">
+
+<slides class="layout-widescreen">
+<slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+
+    <h1> Selected Lessons Learned<br/> Building the KCP53000</h1>
+    <h2></h2>
+    <p> Samuel A. Falvo II &lt;kc5tja@arrl.net></p>
+  </hgroup>
+</slide>
+
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>I do not have a name,<br /> I have a number!</h2>
+      <h3><i>I am a free core!</i></h3>
+    </hgroup>
+  
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Use numbers, not names.</h2>
+      <h3>They're harder for companies to trademark.</h3>
+    </hgroup>
+    <article ><ul>
+<li>KCP53000 went through several names during its development.<ul>
+<li>Original name long forgotten.</li>
+<li>Polaris (trademarked by AMD for a line of GPUs)</li>
+<li>Now, KCP53000.</li>
+</ul>
+</li>
+<li>We <em>want</em> what Intel, AMD, et. al. <em>doesn't</em> want.</li>
+<li>Be proactive in avoiding legal issues.</li>
+</ul></article>
+ 
+</slide>
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>Avoid Premature Pipelining</h2>
+      <h3>Get it working first.</h3>
+    </hgroup>
+  
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Avoid Pipelining At First.</h2>
+      <h3>Build slow, sequenced, working implementation first.</h3>
+    </hgroup>
+    <article ><ul>
+<li>First 4 attempts at building pipelined CPU failed.</li>
+<li>Hockey-stick complexity; can't keep it all in your head at once.</li>
+<li>Premature evil is the root of all optimization.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Avoid Pipelining At First.</h2>
+      <h3>Build slow, sequenced, working implementation first.</h3>
+    </hgroup>
+    <article ><ul>
+<li>5th attempt was successful.<ul>
+<li>Two stage pipeline.</li>
+<li>PLA-based sequencer just like the 6502.</li>
+<li>Instruction fetch and instruction execution <em>currently</em> take turns.</li>
+<li>Easy to alter PLA terms to allow <em>simultaneous</em> operation later.</li>
+</ul>
+</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Pipeline Design Documents Are Misleading</h2>
+      <h3>They're not wrong; but, they're not right either.</h3>
+    </hgroup>
+    <article ><p>Data is shown going from stage to stage to stage, sequentially.</p>
+<p><img src="common-pipeline.png" width="50%" /></p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Pipeline Design Documents Are Misleading</h2>
+      <h3>They're not wrong; but, they're not right either.</h3>
+    </hgroup>
+    <article ><p>Pipeline stages <em>really</em> are independent units cooperating under centralized control.</p>
+<p><img src="real-pipeline.png" width="50%" /></p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Pipeline Design Documents Are Misleading</h2>
+      <h3>They're not wrong; but, they're not right either.</h3>
+    </hgroup>
+    <article ><ul>
+<li>Much easier to refactor later on.</li>
+</ul>
+<p>Current KCP53000 pipeline structure:
+<img src="current-pipeline.png" width="50%" /></p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Pipeline Design Documents Are Misleading</h2>
+      <h3>They're not wrong; but, they're not right either.</h3>
+    </hgroup>
+    <article ><ul>
+<li>Opportunities for optimization:<ul>
+<li>Overlap instruction fetch with everything else (60%-100%)</li>
+<li>Perform both register fetches at once (25%-33%)</li>
+<li>Mirror BRAMs to emulate 2R1W register file (30%-50%)</li>
+</ul>
+</li>
+<li>These compound.<ul>
+<li>Given same 25MHz clock, what once ran at 6 MIPS now runs between 16 and 24 MIPS</li>
+</ul>
+</li>
+</ul></article>
+ 
+</slide>
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>Count Furcula</h2>
+      <h3>64 bits! Ah! Ah! Ah!</h3>
+    </hgroup>
+  
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Furcula Bus</h2>
+      <h3>Fork of Wishbone B3 to Meet CPU's Needs</h3>
+    </hgroup>
+    <article ><ul>
+<li>Justified data transfers: <strong>no byte lanes</strong>.</li>
+<li>Full address bus exposed: no elision for lower address bits.</li>
+<li><code>SIZ_O(n:0)</code> exposed to indicate size of current transfer.</li>
+<li><code>SIGNED_O</code> exposed to let external circuitry handle sign-extension.</li>
+<li>Otherwise, identical to Wishbone B3.</li>
+</ul>
+<p>In retrospect, <code>SIGNED_O</code> is a mistake, but only a small one!</p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone vs. Furcula Bus</h2>
+      <h3>Intel-style vs. Motorola-style Bus</h3>
+    </hgroup>
+    <article ><p>How <strong>Wishbone</strong> Byte Lanes Work</p>
+<table width="100%">
+ <tr>
+  <th>&nbsp;</th>
+  <th>Byte 0</th>
+  <th>Byte 1</th>
+  <th>Byte 2</th>
+  <th>Byte 3</th>
+  <th>HWord 0</th>
+  <th>HWord 1</th>
+  <th>Word</th>
+ </tr>
+ <tr>
+  <td>DAT_IO[7:0]</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[15:8]</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[23:16]</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[31:24]</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>X</td>
+ </tr>
+</table></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone vs. Furcula Bus</h2>
+      <h3>Intel-style vs. Motorola-style Bus</h3>
+    </hgroup>
+    <article ><p>How <strong>Furcula</strong> Justification Works</p>
+<table width="100%">
+ <tr>
+  <th>&nbsp;</th>
+  <th>Byte 0</th>
+  <th>Byte 1</th>
+  <th>Byte 2</th>
+  <th>Byte 3</th>
+  <th>HWord 0</th>
+  <th>HWord 1</th>
+  <th>Word</th>
+ </tr>
+ <tr>
+  <td>DAT_IO[7:0]</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[15:8]</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+  <td>X</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[23:16]</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+ </tr>
+ <tr>
+  <td>DAT_IO[31:24]</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>X</td>
+ </tr>
+</table></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Furcula Bus</h2>
+      <h3>But, ..., <i>why?!</i></h3>
+    </hgroup>
+    <article ><ul>
+<li>
+<p>Allows <em>direct</em> CPU-to-external-circuitry connection.</p>
+</li>
+<li>
+<p>Intel CPUs pre-decode size and lower address bits to break data into individual byte lanes.</p>
+</li>
+<li>Buses out-live CPUs.</li>
+<li>Supporting legacy buses requires <em>resynthesizing</em> information from byte lane enables.</li>
+<li>Thus, bus bridge circuitry must "undo" what CPU-internal circuitry already did.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Furcula Bus</h2>
+      <h3>But, ..., <i>why?!</i></h3>
+    </hgroup>
+    <article ><ul>
+<li>
+<p><em>Therefore,</em> just let external circuitry handle alignment and sign-extension exactly ONCE.</p>
+</li>
+<li>
+<p>Trivial to bridge to Wishbone B3.</p>
+<ul>
+<li>Just needs some data bus multiplexors to route data to/from byte lanes.</li>
+<li>Handful of gates to decode byte lane select signals.</li>
+<li>Sign-extension logic.</li>
+</ul>
+</li>
+</ul></article>
+ 
+</slide>
+
+<slide class="segue dark nobackground" >
+  
+    <!-- <aside class="gdbar"><img src="images/google_developers_icon_128.png"></aside> -->
+    <hgroup class="auto-fadein">
+      <h2>Shoulda, Woulda, Coulda.</h2>
+      <h3>I should have chosen Wishbone B4 over Wishbone B3.</h3>
+    </hgroup>
+  
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Open Hardware's First Standard SoC Interconnect</h3>
+    </hgroup>
+    <article ><p>Closer in scope to PCI bus than something like AXI4.</p>
+<p><img src="wb3.png" /></p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Open Hardware's First Standard SoC Interconnect</h3>
+    </hgroup>
+    <article ><p><img src="wb3.png" /></p>
+<ul>
+<li><code>ACK</code> must be asserted in same cycle (&lt;= 35ns for 25MHz operation) to achieve <em>single-cycle</em> transfers.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Open Hardware's First Standard SoC Interconnect</h3>
+    </hgroup>
+    <article ><p><img src="wb3.png" /></p>
+<ul>
+<li><code>ACK</code> must be negated after transaction if accessing same slave back to back.  (50% efficient)</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Open Hardware's First Standard SoC Interconnect</h3>
+    </hgroup>
+    <article ><p>To get 100% efficiency on bus, you <em>must</em>:</p>
+<ul>
+<li>Use fully asynchronous slave logic that responds in 35ns or less (assuming 25MHz bus).</li>
+<li>Ensure at least one address bit changes between cycles, so slave can detect end of one cycle and start of another.</li>
+<li>Alternatively, declare adjacent transactions to the same address undefined, and let software do the right thing.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Why It Fails for Kestrel-3</h3>
+    </hgroup>
+    <article ><ul>
+<li>Bus bridges and adapters add propegation delays to address decoding logic.</li>
+<li>Brings max. clock speed from around 100MHz to 30MHz.  Ouch!</li>
+<li>Demonstrably incompatible with PSRAM chip timings on Nexys-2 board.</li>
+</ul>
+<p>Kestrel-3 takes around 33ns from address valid to <code>ACK_I</code>.  (Remember, 35ns was our limit!)</p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B3</h2>
+      <h3>Why It Fails for Kestrel-3</h3>
+    </hgroup>
+    <article ><ul>
+<li>Improving performance requires introducing multiple clock domains, one for CPU, and one for Wishbone bus.</li>
+<li>Requires FIFOs and hard to debug async interlocks to work successfully.</li>
+<li>Works comfortably at somewhere below 20MHz clock speeds for something the size of Kestrel-3.</li>
+<li>For anything faster, you start to want something that works more closely <em>and more locally</em> with FPGA resources.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B4 Pipelined</h2>
+      <h3>or: How I Learned to Stop Worrying and Love the Clock</h3>
+    </hgroup>
+    <article ><p><img src="wb4.png" /></p></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B4 Pipelined</h2>
+      <h3>or: How I Learned to Stop Worrying and Love the Clock</h3>
+    </hgroup>
+    <article ><p>Observe:</p>
+<ul>
+<li><code>CYC</code> asserted <em>as long as at least one cycle remains unterminated.</em>  No longer a bus request <em>as such</em>.</li>
+<li><code>STB</code> now is the prime determinant in whether or not a bus cycle is valid or not.</li>
+<li><code>ACK</code> no longer scoped by <code>STB</code>.  It may arrive at any time after a corresponding <code>STB</code>.</li>
+<li><code>STALL</code> (not shown) used to throttle master if required.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B4 Pipelined</h2>
+      <h3>or: How I Learned to Stop Worrying and Love the Clock</h3>
+    </hgroup>
+    <article ><p>Address decode latency <em>not</em> cured by increasing clock or introducing pipelining.  So why bother?</p>
+<ul>
+<li>Wishbone 3 works great at lower speeds because you have lots of time to generate <code>ACK</code> from address and <code>STB</code>.</li>
+<li>As clock period approaches propegation delay between LUTs, glitches increasingly manifest.</li>
+<li>DFFs work like synchronizers.  Every LUT has a corresponding DFF; adding them costs nothing.</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Wishbone B4 Pipelined</h2>
+      <h3>or: How I Learned to Stop Worrying and Love the Clock</h3>
+    </hgroup>
+    <article ><p>Address decode latency <em>not</em> cured by increasing clock or introducing pipelining.  So why bother?</p>
+<ul>
+<li>Pipelining supports overlapping bus transactions without altering address decode latency.</li>
+<li><strong>Easier to synchronize across different clock domains.</strong></li>
+<li><strong>Easier to bridge across different protocols.</strong>  (Wishbone to RapidIO, for example.)</li>
+</ul></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Acknowledgements</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>I used <a href="https://github.com/rmcgibbo/slidedeck">Slidedeck</a> to prepare this slide deck.</p>
+<p>I used <a href="https://wavedrom.com">Wavedrom</a> to prepare the timing diagrams.</p></article>
+ 
+</slide>
+
+
+<slide class="thank-you-slide segue nobackground">
+  <!-- <aside class="gdbar right"><img src="images/google_developers_icon_128.png"></aside> -->
+  <article class="flexbox vleft auto-fadein">
+    <h2> Thanks everyone!</h2>
+    <p></p>
+  </article>
+  <p data-config-contact class="auto-fadein"> <span>Email</span> <a href="mailto:kc5tja@arrl.net">Samuel A. Falvo II &lt;kc5tja@arrl.net></a><br/> <span>Web</span> <a href="https://kestrelcomputer.github.io/kestrel">https://kestrelcomputer.github.io/kestrel</a><br/> <span>Github</span> <a href="http://github.com/kestrelcomputer">https://github.com/kestrelcomputer</a></p>
+  </p>
+</slide>
+
+<slide class="backdrop"></slide>
+
+</slides>
+
+<script>
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-XXXXXXXX-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+
+<!--[if IE]>
+  <script src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+  <script>CFInstall.check({mode: 'overlay'});</script>
+<![endif]-->
+</body>
+</html>
